@@ -1,6 +1,8 @@
 -- Create the stored procedure ComputeAverageScoreForUser
 
-DELIMITER //
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS ComputeAverageScoreForUser;
 CREATE PROCEDURE ComputeAverageScoreForUser(IN p_user_id INT)
 BEGIN
     DECLARE avg_score DECIMAL(10, 2);
@@ -10,10 +12,11 @@ BEGIN
     FROM corrections
     WHERE user_id = p_user_id;
 
-    -- Update or insert the average score for the user
-    INSERT INTO average_scores (user_id, avg_score)
-    VALUES (p_user_id, avg_score)
-    ON DUPLICATE KEY UPDATE avg_score = avg_score;
-END;
-//
+    -- Update the average score in the users table
+    UPDATE users
+    SET average_score = IFNULL(avg_score, 0)
+    WHERE id = p_user_id;
+
+END $$
+
 DELIMITER ;
