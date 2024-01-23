@@ -29,7 +29,7 @@ def nginx_log_stats():
         print("\tmethod POST: {}".format(post_count))
         print("\tmethod PUT: {}".format(put_count))
         print("\tmethod PATCH: {}".format(patch_count))
-        print("\tmethod DELETE: {}".format(delete))
+        print("\tmethod DELETE: {}".format(delete_count))
         print("{} status check".format(path_count))
 
 
