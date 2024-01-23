@@ -8,29 +8,38 @@ from pymongo import MongoClient
 
 def nginx_log_stats():
     """
-    Displays stats about Nginx logs stored in MongoDB
+    Displays nginx log stats
+
+    Arguments:
+    - None
+
+    Return:
+    - void
     """
-    with MongoClient('mongodb://127.0.0.1:27017') as client:
-        logs_collection = client.logs.nginx
+    client = MongoClient('mongodb://127.0.0.1:27017')
+    db = client['logs']
+    nginx_coll = db['nginx']
 
-        total_count = logs_collection.count_documents({})
-        get_count = logs_collection.count_documents({"method": "GET"})
-        post_count = logs_collection.count_documents({"method": "POST"})
-        put_count = logs_collection.count_documents({"method": "PUT"})
-        patch_count = logs_collection.count_documents({"method": "PATCH"})
-        delete_count = logs_collection.count_documents({"method": "DELETE"})
+    # Get the total number of logs
+    total_logs = nginx_coll.count_documents({})
 
-        path_query = {"method": "GET", "path": "/status"}
-        path_count = logs_collection.count_documents(path_query)
+    # Get the count for each HTTP method
+    http_methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 
-        print("{} logs".format(total_count))
-        print("Methods:")
-        print("\tmethod GET: {}".format(get_count))
-        print("\tmethod POST: {}".format(post_count))
-        print("\tmethod PUT: {}".format(put_count))
-        print("\tmethod PATCH: {}".format(patch_count))
-        print("\tmethod DELETE: {}".format(delete_count))
-        print("{} status check".format(path_count))
+    method_counts = {}
+    for method in http_methods:
+        method_counts[method] = nginx_coll.count_documents({"method": method})
+
+    check_count = nginx_coll.count_documents({"method": "GET",
+                                             "path": "/status"})
+
+    print(f"{total_logs} logs")
+    print("Methods:")
+    for method in http_methods:
+        print(f"    method {method}: {method_counts[method]}")
+    print(f"{check_count} status check")
+
+    client.close()
 
 
 if __name__ == "__main__":
