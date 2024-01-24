@@ -12,19 +12,20 @@ def cache_page(fn: Callable) -> Callable:
     """
     get_page method decorator
     """
-    @wraps(fn)
+    @wraps(method)
     def wrapper(url: str) -> str:
         """
         wrapper method
         """
         client = redis.Redis()
         client.incr(f'count:{url}')
-        cached = client.get(f'{url}')
+        cached = client.get(f'result:{url}')
         if cached:
             return cached.decode('utf-8')
 
-        res = fn(url)
-        client.set(f'{url}', res, 10)
+        res = method(url)
+        client.set(f'{url}', 0)
+        client.setex(f'result:{url}', 10, res)
         return res
     return wrapper
 
