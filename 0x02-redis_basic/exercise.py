@@ -23,6 +23,7 @@ def count_calls(method: Callable) -> Callable:
         return method(self, *args, **kwargs)
     return wrapper
 
+
 def call_history(method: Callable) -> Callable:
     """
     call_history decorator to store the history of inputs and outputs
@@ -31,13 +32,13 @@ def call_history(method: Callable) -> Callable:
     key_outputs = "{}:outputs".format(method.__qualname__)
 
     @wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Any, *args):
         """
         Wrapper method
         """
         self._redis.rpush(key_inputs, str(args))
-        output = method(self, *args, **kwargs)
-        self._redis.rpush(key_outputs, str(output))
+        output = method(self, *args)
+        self._redis.rpush(key_outputs, output)
         return output
     return wrapper
 
