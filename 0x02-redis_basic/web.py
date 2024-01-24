@@ -2,50 +2,37 @@
 """
 Obtains the HTML content of a particular URL
 """
-import requests
 import redis
+import requests
 from functools import wraps
-import time
+from typing import Callable
 
 
-def cache_page(expiration_time):
+def cache_page(fn: Callable) -> Callable:
     """
-    Obtains the HTML content of a particular URL and returns it
+    get_page method decorator
     """
-    def decorator(func):
+    @wraps(fn)
+    def wrapper(url: str) -> str:
         """
-        Decorator method
+        wrapper method
         """
-        @wraps(func)
-        def wrapper(url, *args, **kwargs):
-            """
-            Wrapper method
-            """
-            # Use a unique key for each URL
-            count_key = f"count:{url}"
-            content_key = f"content:{url}"
+        client = redis.Redis()
+        client.incr(f'count:{url}')
+        cached = client.get(f'{url}')
+        if cached:
+            return cached.decode('utf-8')
 
-            # Check if the content is already cached
-            cached_content = cache.get(content_key)
-            if cached_content:
-                cache.incr(count_key)
-                return cached_content.decode('utf-8')
-
-            # If not cached, fetch the content and cache it
-            content = func(url, *args, **kwargs)
-            cache.setex(content_key, expiration_time, content)
-            cache.incr(count_key)
-
-            return content
-
-        return wrapper
-    return decorator
+        res = fn(url)
+        client.set(f'{url}', res, 10)
+        return res
+    return wrapper
 
 
-@cache_page(expiration_time=10)
+@track_get_page
 def get_page(url: str) -> str:
     """
-    Get_page method
+    get_page method
     """
     response = requests.get(url)
     return response.text
