@@ -43,6 +43,24 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(fn: Callable) -> None:
+    """
+    Cache's method count display
+    """
+    client = redis.Redis()
+    calls = int(client.get(fn.__qualname__) or 0)
+
+    param = [json.loads(input.decode('utf-8')) for input in
+             client.lrange(f'{fn.__qualname__}:inputs', 0, -1)]
+    res = [json.loads(output.decode('utf-8')) for output in
+           client.lrange(f'{fn.__qualname__}:outputs', 0, -1)]
+
+    print("{} was called {} times:".format(fn.__qualname__, calls))
+
+    for input, output in zip(param, outputs):
+        print("{}(*{}) -> {}".format(fn.__qualname__, param, res))
+
+
 class Cache:
     """
     Cache class definition
