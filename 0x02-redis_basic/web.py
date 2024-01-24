@@ -29,7 +29,7 @@ def cache_page(fn: Callable) -> Callable:
     return wrapper
 
 
-@track_get_page
+@cache_page
 def get_page(url: str) -> str:
     """
     get_page method
