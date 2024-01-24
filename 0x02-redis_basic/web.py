@@ -8,7 +8,7 @@ from functools import wraps
 from typing import Callable
 
 
-def cache_page(fn: Callable) -> Callable:
+def cache_page(method: Callable) -> Callable:
     """
     get_page method decorator
     """
